@@ -7,20 +7,32 @@ from livekit.plugins import (
 )
 from livekit.plugins import google
 from prompts import AGENT_INSTRUCTION, SESSION_INSTRUCTION
+from tools import get_weather, search_web, send_email
+
+
 load_dotenv()
 
 
 class Assistant(Agent):
     def __init__(self) -> None:
-        super().__init__(instructions=AGENT_INSTRUCTION)
+        super().__init__(
+            instructions=AGENT_INSTRUCTION,
+            llm=google.beta.realtime.RealtimeModel(
+                voice="Charon",
+                
+                temperature=0.8,
+            ),
+            tools=[
+                get_weather,
+                search_web,
+                send_email,
+            ],
+        )
 
 
 async def entrypoint(ctx: agents.JobContext):
     session = AgentSession(
-        llm=google.beta.realtime.RealtimeModel(
-            voice="Charon",
-            temperature= 0.8,
-        )
+
     )
 
     await session.start(
@@ -30,7 +42,7 @@ async def entrypoint(ctx: agents.JobContext):
             # LiveKit Cloud enhanced noise cancellation
             # - If self-hosting, omit this parameter
             # - For telephony applications, use `BVCTelephony` for best results
-            # video_enabled = True,
+            video_enabled = True,
             noise_cancellation=noise_cancellation.BVC(),
         ),
     )
